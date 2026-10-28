@@ -1,6 +1,4 @@
 <Solution>
-  <Project Path="API_Classes/API_Classes.csproj" Id="633c79e3-78ca-442a-8299-06de3152b69c" />
   <Project Path="BusinessWeb/BusinessWeb.csproj" Id="6591f2e6-c41b-44da-bbf6-e363306175d2" />
   <Project Path="DataWebAPI/DataWebAPI.csproj" Id="9f64ca85-04a8-4a7e-9a4a-6a5ea1649a84" />
-  <Project Path="GUI/GUI.csproj" Id="2ceca917-c25d-4829-8e5e-9eeb29ff178b" />
 </Solution>
