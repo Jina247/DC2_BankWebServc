@@ -1,4 +1,4 @@
-namespace DataWebAPI.Models
+namespace BankMvc.Models
 {
     // custom exception for cannot view results due to empty / rule violation
     public class ErrorViewModel
