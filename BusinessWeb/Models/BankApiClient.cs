@@ -5,16 +5,16 @@ using RestSharp;
 
 namespace BankMvc.Services
 {
-    // the ONLY place that knows part A's URLs
+    // the ONLY place that knows Part A's URLs
     public static class Routes
     {
-        // all accounts of one user (part A: GetAccountsByUserAsync)
-        public static string AccountsForUser(int userId) => $"api/users/{userId}/accounts";
+        // all accounts of one user, the user ID is sent in the query (Part A: GetAccountsByUserAsync)
+        public const string Accounts = "api/accounts";
 
-        // all transactions with paging, sorting and filters (part A: SearchTransactionsAsync)
+        // all transactions with paging, sorting and filters (Part A: SearchTransactionsAsync)
         public const string Transactions = "api/transactions";
 
-        // transfer money between 2 accounts (part A: TransferAsync)
+        // transfer money between 2 accounts (Part A: TransferAsync)
         public const string Transfer = "api/transactions/transfer";
     }
 
@@ -55,7 +55,7 @@ namespace BankMvc.Services
 
         // get all accounts of a user (and also used to check who owns what)
         public Task<ApiResult<List<AccountDto>>> GetAccountsAsync(int userId) =>
-            Send<List<AccountDto>>(new RestRequest(Routes.AccountsForUser(userId)));
+            Send<List<AccountDto>>(new RestRequest(Routes.Accounts).AddQueryParameter("userId", userId.ToString()));
 
         // get transactions with the filters, paging and sorting
         public Task<ApiResult<PagedResult<TransactionDto>>> GetTransactionsAsync(TransactionQuery q)
