@@ -64,13 +64,13 @@ else
                 @* sortable column: date *@
                 <th>
                     <a asp-action="History" asp-route-id="@Model.AccountNumber" asp-route-From="@from" asp-route-To="@to"
-                       asp-route-PageSize="@Model.Query.PageSize" asp-route-SortBy="timestamp" asp-route-SortDir="@NextDir("timestamp")">Date@Arrow("timestamp")</a>
+                       asp-route-PageSize="@Model.Query.PageSize" asp-route-SortBy="timestamp" asp-route-SortDir="@NextDir("timestamp")">Date @Arrow("timestamp")</a>
                 </th>
                 <th>Type</th>
                 @* sortable column: amount *@
                 <th class="text-end">
                     <a asp-action="History" asp-route-id="@Model.AccountNumber" asp-route-From="@from" asp-route-To="@to"
-                       asp-route-PageSize="@Model.Query.PageSize" asp-route-SortBy="amount" asp-route-SortDir="@NextDir("amount")">Amount@Arrow("amount")</a>
+                       asp-route-PageSize="@Model.Query.PageSize" asp-route-SortBy="amount" asp-route-SortDir="@NextDir("amount")">Amount @Arrow("amount")</a>
                 </th>
                 <th class="text-end">Balance after</th>
             </tr>
