@@ -11,8 +11,4 @@
     <PackageReference Include="RestSharp" Version="114.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\API_Classes\API_Classes.csproj" />
-  </ItemGroup>
-
 </Project>
