@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o => o.JsonSerializerOptions.IncludeFields = true);
-builder.Services.AddSingleton<IAccountService, FakeAccountService>();
+builder.Services.AddSingleton<IAccountService, AccountService>();
 
 var app = builder.Build();
 
