@@ -1,0 +1,53 @@
+﻿@model BankMvc.Controllers.AccountsIndexViewModel
+@{
+    ViewData["Title"] = "My Accounts";
+}
+
+<h2>My Accounts</h2>
+
+@* success message from other pages (ex: after a transfer) *@
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@* clear message if the service is down or gave an error *@
+@if (Model.Error != null)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+else if (!Model.Accounts.Any())
+{
+    <div class="alert alert-info">You don't have any accounts yet.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Account number</th>
+                <th>Type</th>
+                <th class="text-end">Balance</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var a in Model.Accounts)
+            {
+                <tr>
+                    <td>@a.AccountNumber</td>
+                    <td>@a.AccountType</td>
+                    <td class="text-end">$@a.Balance.ToString("N2")</td>
+                    <td>@(a.IsActive ? "Active" : "Deactivated")</td>
+                    <td>
+                        @* opens the history of this account only *@
+                        <a class="btn btn-sm btn-outline-primary" asp-action="History" asp-route-id="@a.AccountNumber">History</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a class="btn btn-primary" asp-controller="Transfer" asp-action="Index">Transfer money</a>
+}

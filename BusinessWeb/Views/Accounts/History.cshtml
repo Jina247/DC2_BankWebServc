@@ -1,0 +1,108 @@
+﻿@model BankMvc.Controllers.HistoryViewModel
+@{
+    ViewData["Title"] = "Transaction History";
+
+    // change the dates to text (yyyy-MM-dd) so the links & the date boxes use the same format
+    var from = Model.Query.From?.ToString("yyyy-MM-dd");
+    var to = Model.Query.To?.ToString("yyyy-MM-dd");
+
+    // click the same column again to flip asc/desc, a new column starts with asc
+    string NextDir(string col) =>
+        Model.Query.SortBy == col && Model.Query.SortDir == "asc" ? "desc" : "asc";
+
+    // arrow to show which column is sorted now
+    string Arrow(string col) =>
+        Model.Query.SortBy == col ? (Model.Query.SortDir == "asc" ? " ▲" : " ▼") : "";
+}
+
+<h2>Transactions for account @Model.AccountNumber</h2>
+<a asp-action="Index">&larr; Back to my accounts</a>
+
+@* filter form, use GET so the filters stay in the url (so paging & sorting keep them) *@
+<form method="get" asp-action="History" asp-route-id="@Model.AccountNumber" class="row g-2 my-3">
+    <div class="col-auto">
+        <label class="form-label">From</label>
+        <input type="date" name="From" value="@from" class="form-control" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label">To</label>
+        <input type="date" name="To" value="@to" class="form-control" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label">Per page</label>
+        <select name="PageSize" class="form-select">
+            @foreach (var size in new[] { 5, 10, 25, 50 })
+            {
+                <option value="@size" selected="@(Model.Query.PageSize == size)">@size</option>
+            }
+        </select>
+    </div>
+
+    @* keep the current sorting when filtering *@
+    <input type="hidden" name="SortBy" value="@Model.Query.SortBy" />
+    <input type="hidden" name="SortDir" value="@Model.Query.SortDir" />
+
+    <div class="col-auto align-self-end">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a class="btn btn-outline-secondary" asp-action="History" asp-route-id="@Model.AccountNumber">Clear</a>
+    </div>
+</form>
+
+@if (Model.Error != null)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+else if (Model.Result == null || !Model.Result.Items.Any())
+{
+    <div class="alert alert-info">No transactions found.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                @* sortable column: date *@
+                <th>
+                    <a asp-action="History" asp-route-id="@Model.AccountNumber" asp-route-From="@from" asp-route-To="@to"
+                       asp-route-PageSize="@Model.Query.PageSize" asp-route-SortBy="timestamp" asp-route-SortDir="@NextDir("timestamp")">Date@Arrow("timestamp")</a>
+                </th>
+                <th>Type</th>
+                @* sortable column: amount *@
+                <th class="text-end">
+                    <a asp-action="History" asp-route-id="@Model.AccountNumber" asp-route-From="@from" asp-route-To="@to"
+                       asp-route-PageSize="@Model.Query.PageSize" asp-route-SortBy="amount" asp-route-SortDir="@NextDir("amount")">Amount@Arrow("amount")</a>
+                </th>
+                <th class="text-end">Balance after</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in Model.Result.Items)
+            {
+                <tr>
+                    <td>@t.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@t.Type</td>
+                    @* money in = green, money out = red *@
+                    <td class="text-end @(t.Amount < 0 ? "text-danger" : "text-success")">@t.Amount.ToString("N2")</td>
+                    <td class="text-end">@t.BalanceAfter.ToString("N2")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @* paging: previous, page numbers around the current page, next *@
+    @{
+        var page = Model.Result.Page;
+        var last = Model.Result.TotalPages;
+        var start = Math.Max(1, page - 2);
+        var end = Math.Min(last, page + 2);
+    }
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(page <= 1 ? "disabled" : "")">
+                <a class="page-link" asp-action="History" asp-route-id="@Model.AccountNumber" asp-route-From="@from" asp-route-To="@to"
+                   asp-route-PageSize="@Model.Query.PageSize" asp-route-SortBy="@Model.Query.SortBy" asp-route-SortDir="@Model.Query.SortDir"
+                   asp-route-Page="@(page - 1)">Previous</a>
+            </li>
+            @for (var p = start; p <= end; p++)
+            {
+                <li class="page-item @(p

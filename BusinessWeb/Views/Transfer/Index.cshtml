@@ -1,0 +1,56 @@
+﻿@model BankMvc.Models.TransferViewModel
+@{
+    ViewData["Title"] = "Transfer Money";
+
+    // choices for the dropdown, active accounts only & show the balance so they know how much they have
+    var fromList = new SelectList(
+        Model.MyAccounts.Where(a => a.IsActive)
+            .Select(a => new { Value = a.AccountNumber, Text = $"{a.AccountNumber} ({a.AccountType}) - ${a.Balance:N2}" }),
+        "Value", "Text", Model.FromAccountNumber);
+}
+
+<h2>Transfer Money</h2>
+
+<div class="row">
+    <div class="col-md-5">
+        @* form posts back to the same page (anti forgery token is added automatically) *@
+        <form asp-action="Index" method="post">
+            @* all the error messages (including insufficient funds) show here *@
+            <div asp-validation-summary="All" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="FromAccountNumber" class="form-label">From account</label>
+                <select asp-for="FromAccountNumber" asp-items="fromList" class="form-select">
+                    <option value="">-- choose an account --</option>
+                </select>
+                <span asp-validation-for="FromAccountNumber" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ToAccountNumber" class="form-label">Recipient account number</label>
+                <input asp-for="ToAccountNumber" class="form-control" />
+                <span asp-validation-for="ToAccountNumber" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Amount" class="form-label">Amount</label>
+                <input asp-for="Amount" class="form-control" />
+                <span asp-validation-for="Amount" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">Description (optional)</label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Transfer</button>
+            <a class="btn btn-outline-secondary" asp-controller="Accounts" asp-action="Index">Cancel</a>
+        </form>
+    </div>
+</div>
+
+@* browser side validation (comes with the default template) *@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
