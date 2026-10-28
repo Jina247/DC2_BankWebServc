@@ -1,4 +1,4 @@
-﻿@model BankMvc.Controllers.HistoryViewModel
+@model BankMvc.Controllers.HistoryViewModel
 @{
     ViewData["Title"] = "Transaction History";
 
@@ -105,4 +105,18 @@ else
             </li>
             @for (var p = start; p <= end; p++)
             {
-                <li class="page-item @(p
+                <li class="page-item @(p == page ? "active" : "")">
+                    <a class="page-link" asp-action="History" asp-route-id="@Model.AccountNumber" asp-route-From="@from" asp-route-To="@to"
+                       asp-route-PageSize="@Model.Query.PageSize" asp-route-SortBy="@Model.Query.SortBy" asp-route-SortDir="@Model.Query.SortDir"
+                       asp-route-Page="@p">@p</a>
+                </li>
+            }
+            <li class="page-item @(page >= last ? "disabled" : "")">
+                <a class="page-link" asp-action="History" asp-route-id="@Model.AccountNumber" asp-route-From="@from" asp-route-To="@to"
+                   asp-route-PageSize="@Model.Query.PageSize" asp-route-SortBy="@Model.Query.SortBy" asp-route-SortDir="@Model.Query.SortDir"
+                   asp-route-Page="@(page + 1)">Next</a>
+            </li>
+        </ul>
+    </nav>
+    <p class="text-muted">Showing page @page of @last (@Model.Result.TotalCount transactions)</p>
+}
