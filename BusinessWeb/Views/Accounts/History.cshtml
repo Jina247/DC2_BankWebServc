@@ -90,12 +90,11 @@ else
     </table>
 
     @* paging: previous, page numbers around the current page, next *@
-    @{
-        var page = Model.Result.Page;
-        var last = Model.Result.TotalPages;
-        var start = Math.Max(1, page - 2);
-        var end = Math.Min(last, page + 2);
-    }
+    var page = Model.Result.Page;
+    var last = Model.Result.TotalPages;
+    var start = Math.Max(1, page - 2);
+    var end = Math.Min(last, page + 2);
+    
     <nav>
         <ul class="pagination">
             <li class="page-item @(page <= 1 ? "disabled" : "")">
