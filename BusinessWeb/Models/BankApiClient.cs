@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 using BankMvc.Models;
 using RestSharp;
@@ -16,6 +17,12 @@ namespace BankMvc.Services
 
         // transfer money between 2 accounts (Part A: TransferAsync)
         public const string Transfer = "api/transactions/transfer";
+
+        // Records an action and provides a list with filters and paging
+        public const string Audit = "api/audit";
+
+        // Checks if the service and database is up
+        public const string Health = "api/health";
     }
 
     // object to hold the result of every call to the service (success or error)
@@ -84,6 +91,45 @@ namespace BankMvc.Services
                 .AddJsonBody(new { m.FromAccountNumber, m.ToAccountNumber, m.Amount, m.Description });
 
             return Send<TransactionDto>(req);
+        }
+
+        // ---------- audit trail ----------
+
+        // record an admin action, ex: LogAdminActionAsync(User, "RESET_PASSWORD", "User", "7", "Password reset by admin")
+        // takes the admin's ID from the login cookie so callers can't fake it
+        // an audit failure never stops the real action, the caller can just ignore the result
+        public Task<ApiResult<AuditEntryDto>> LogAdminActionAsync(ClaimsPrincipal admin, string action,
+            string? targetType = null, string? targetId = null, string? details = null)
+        {
+            if (!int.TryParse(admin.FindFirstValue(ClaimTypes.NameIdentifier), out var adminId))
+                return Task.FromResult(Fail<AuditEntryDto>("Not signed in as an administrator."));
+
+            var req = new RestRequest(Routes.Audit, Method.Post)
+                .AddJsonBody(new { adminUserId = adminId, action, targetType, targetId, details });
+            return Send<AuditEntryDto>(req);
+        }
+
+        // get audit entries for the admin dashboard
+        public Task<ApiResult<PagedResult<AuditEntryDto>>> GetAuditLogAsync(AuditQuery q)
+        {
+            var req = new RestRequest(Routes.Audit);
+            if (!string.IsNullOrWhiteSpace(q.Search)) req.AddQueryParameter("search", q.Search);
+            if (!string.IsNullOrWhiteSpace(q.ActionType)) req.AddQueryParameter("action", q.ActionType);
+            if (q.From.HasValue) req.AddQueryParameter("from", q.From.Value.ToString("yyyy-MM-dd"));
+            if (q.To.HasValue) req.AddQueryParameter("to", q.To.Value.ToString("yyyy-MM-dd"));
+            req.AddQueryParameter("sortDir", q.SortDir);
+            req.AddQueryParameter("page", q.Page.ToString());
+            req.AddQueryParameter("pageSize", q.PageSize.ToString());
+            return Send<PagedResult<AuditEntryDto>>(req);
+        }
+
+        // ---------- resilience ----------
+
+        // true if the service answers /api/health, used to show a warning banner on the home page
+        public async Task<bool> IsServiceUpAsync()
+        {
+            var result = await Send<JsonElement>(new RestRequest(Routes.Health));
+            return result.Ok;
         }
 
         // helper method to send the request, it always gives back an ApiResult (it never throws)

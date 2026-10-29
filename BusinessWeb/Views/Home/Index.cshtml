@@ -1,0 +1,21 @@
+@model BankMvc.Models.HomeViewModel
+@{
+    ViewData["Title"] = "Welcome";
+}
+
+@if (!Model.ServiceUp)
+{
+    <div class="alert alert-warning">
+        <strong>The bank service is unavailable right now.</strong>
+        You can still browse this page, but signing in and banking will not work until it is back.
+    </div>
+}
+
+<div class="py-5 text-center">
+    <h1 class="display-5">Welcome to BusinessWeb Bank</h1>
+    <p class="lead text-muted">View your accounts, check your transaction history and move money between accounts.</p>
+    <div class="d-flex gap-2 justify-content-center">
+        <a class="btn btn-primary btn-lg" href="@Url.Content(BankMvc.Navigation.LoginPath)">Sign in</a>
+        <a class="btn btn-outline-secondary btn-lg" href="@Url.Content(BankMvc.Navigation.RegisterPath)">Open an account</a>
+    </div>
+</div>

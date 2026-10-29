@@ -10,11 +10,12 @@ var dbConn = new SqliteConnectionStringBuilder(builder.Configuration.GetConnecti
 if (!Path.IsPathRooted(dbConn.DataSource))
     dbConn.DataSource = Path.Combine(builder.Environment.ContentRootPath, dbConn.DataSource);
 dbConn.ForeignKeys = true;
-builder.Configuration["ConnectionString:DefaultConnection"] = dbConn.ToString();
+builder.Configuration["ConnectionStrings:DefaultConnection"] = dbConn.ToString();
 
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o => o.JsonSerializerOptions.IncludeFields = true);
 builder.Services.AddSingleton<IAccountService, AccountService>();
+builder.Services.AddSingleton<IAuditService, AuditService>();
 
 var app = builder.Build();
 

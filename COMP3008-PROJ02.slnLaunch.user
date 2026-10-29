@@ -5,6 +5,10 @@
       {
         "Path": "DataWebAPI\\DataWebAPI.csproj",
         "Action": "Start"
+      },
+      {
+        "Path": "BusinessWeb\\BusinessWeb.csproj",
+        "Action": "Start"
       }
     ]
   }

@@ -1,0 +1,125 @@
+@model BankMvc.Models.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var q = Model.Query;
+
+    // builds the link for another page, keeping the current filters
+    string PageLink(int page) => Url.Action("Index", new
+    {
+        q.Search, q.ActionType,
+        From = q.From?.ToString("yyyy-MM-dd"),
+        To = q.To?.ToString("yyyy-MM-dd"),
+        q.SortDir, q.PageSize, Page = page
+    })!;
+}
+
+<h2>Admin Dashboard</h2>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-4">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Transactions on record</div>
+            <div class="fs-3">@(Model.TotalTransactions?.ToString("N0") ?? "–")</div>
+        </div></div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Audit entries (current filter)</div>
+            <div class="fs-3">@(Model.Audit?.TotalCount.ToString("N0") ?? "–")</div>
+        </div></div>
+    </div>
+    <div class="col-sm-4 d-flex flex-column gap-2 justify-content-center">
+        <a class="btn btn-outline-primary" asp-controller="AdminTrans" asp-action="Index">View all transactions</a>
+    </div>
+</div>
+
+@if (Model.Error != null)
+{
+    <div class="alert alert-warning">@Model.Error</div>
+}
+
+<h4>Audit trail</h4>
+
+@* filters are sent in the query string, so the page can be bookmarked / refreshed *@
+<form method="get" asp-action="Index" class="row g-2 align-items-end mb-3">
+    <div class="col-md-3">
+        <label class="form-label small">Search</label>
+        <input name="Search" value="@q.Search" class="form-control" placeholder="action, user, ID, details" />
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">From</label>
+        <input type="date" name="From" value="@q.From?.ToString("yyyy-MM-dd")" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">To</label>
+        <input type="date" name="To" value="@q.To?.ToString("yyyy-MM-dd")" class="form-control" />
+    </div>
+    <div class="col-md-2">
+        <label class="form-label small">Order</label>
+        <select name="SortDir" class="form-select">
+            <option value="desc" selected="@(q.SortDir == "desc")">Newest first</option>
+            <option value="asc" selected="@(q.SortDir == "asc")">Oldest first</option>
+        </select>
+    </div>
+    <div class="col-md-1">
+        <label class="form-label small">Per page</label>
+        <select name="PageSize" class="form-select">
+            @foreach (var size in new[] { 10, 20, 50 })
+            {
+                <option value="@size" selected="@(q.PageSize == size)">@size</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+    </div>
+</form>
+
+@if (Model.Audit != null)
+{
+    if (Model.Audit.Items.Count == 0)
+    {
+        <p class="text-muted">No audit entries match these filters.</p>
+    }
+    else
+    {
+        <table class="table table-sm table-striped">
+            <thead>
+                <tr>
+                    <th>When (UTC)</th>
+                    <th>Admin</th>
+                    <th>Action</th>
+                    <th>Target</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model.Audit.Items)
+                {
+                    <tr>
+                        <td class="text-nowrap">@e.Timestamp.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@e.AdminUsername</td>
+                        <td><span class="badge bg-secondary">@e.Action</span></td>
+                        <td>@e.TargetType @e.TargetId</td>
+                        <td>@e.Details</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <nav class="d-flex justify-content-between align-items-center">
+            <span class="text-muted small">Page @Model.Audit.Page of @Math.Max(1, Model.Audit.TotalPages)</span>
+            <div class="btn-group">
+                @if (Model.Audit.Page > 1)
+                {
+                    <a class="btn btn-sm btn-outline-secondary" href="@PageLink(Model.Audit.Page - 1)">Previous</a>
+                }
+                @if (Model.Audit.Page < Model.Audit.TotalPages)
+                {
+                    <a class="btn btn-sm btn-outline-secondary" href="@PageLink(Model.Audit.Page + 1)">Next</a>
+                }
+            </div>
+        </nav>
+    }
+}
