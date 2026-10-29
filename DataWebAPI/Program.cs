@@ -35,6 +35,7 @@ builder.Services.AddControllersWithViews()
         };
     });
 builder.Services.AddSingleton<IAccountService, AccountService>();
+builder.Services.AddSingleton<IUserService, UserService>();
 
 var app = builder.Build();
 
