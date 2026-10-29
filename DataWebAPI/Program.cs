@@ -1,8 +1,16 @@
 using DataWebAPI.Models;
 using DataWebAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using DataWebAPI.Data;
+using Microsoft.Data.Sqlite;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var dbConn = new SqliteConnectionStringBuilder(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source = App_Data/bank.db");
+if (!Path.IsPathRooted(dbConn.DataSource))
+    dbConn.DataSource = Path.Combine(builder.Environment.ContentRootPath, dbConn.DataSource);
+dbConn.ForeignKeys = true;
+builder.Configuration["ConnectionString:DefaultConnection"] = dbConn.ToString();
 
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o => o.JsonSerializerOptions.IncludeFields = true);
@@ -10,6 +18,8 @@ builder.Services.AddSingleton<IAccountService, AccountService>();
 
 var app = builder.Build();
 
+DbInitializer.Initialise(dbConn.ToString(), app.Logger);
+DbSeeder.SeedIfEmpty(dbConn.ToString(), app.Logger);
 
 app.Use(async (ctx, next) =>
 {
