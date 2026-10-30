@@ -18,6 +18,12 @@ namespace DataWebAPI.Services
         // function to deactivate a user
         Task DeactivateUserAsync(int userId);
 
+        // function to list / search users (paged)
+        Task<PagedResult<UserDto>> SearchUsersAsync(UserQuery q);
+
+        // function to set a new password for a user
+        Task ResetPasswordAsync(int userId, ResetPasswordRequest req);
+
         // function to check a username + password, returns null if they are wrong
         Task<UserDto?> LoginAsync(LoginRequest req);
 

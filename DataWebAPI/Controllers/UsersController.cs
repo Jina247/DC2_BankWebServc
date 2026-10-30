@@ -50,6 +50,19 @@ namespace DataWebAPI.Controllers
             return NoContent();   // 204
         }
 
+        // GET /api/users?search=smith&role=Customer&page=1&pageSize=10
+        [HttpGet]
+        public async Task<IActionResult> Search([FromQuery] UserQuery q)
+            => Ok(await _service.SearchUsersAsync(q));
+
+        // PUT /api/users/2/password
+        [HttpPut("{id:int}/password")]
+        public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetPasswordRequest req)
+        {
+            await _service.ResetPasswordAsync(id, req);
+            return NoContent();   // 204
+        }
+
         // POST /api/users/login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)

@@ -55,6 +55,29 @@ namespace DataWebAPI.Models
         public string Password { get; set; } = "";
     }
 
+    // request object for resetting a user's password
+    public class ResetPasswordRequest
+    {
+        [Required, StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters.")]
+        public string NewPassword { get; set; } = "";
+    }
+
+    // request object for listing / searching users
+    public class UserQuery
+    {
+        // matches part of the username, name or email
+        public string? Search { get; set; }
+
+        [RegularExpression("^(Customer|Admin)$", ErrorMessage = "Role must be Customer or Admin.")]
+        public string? Role { get; set; }
+
+        [Range(1, int.MaxValue)]
+        public int Page { get; set; } = 1;
+
+        [Range(1, 100)]
+        public int PageSize { get; set; } = 10;
+    }
+
     // object to send user details back (response), the password hash is never included
     public class UserDto
     {

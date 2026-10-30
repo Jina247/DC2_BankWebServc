@@ -133,6 +133,65 @@ namespace DataWebAPI.Services
             return Task.CompletedTask;
         }
 
+        // function to list / search users (paged)
+        public Task<PagedResult<UserDto>> SearchUsersAsync(UserQuery q)
+        {
+            using var conn = Open();
+
+            // build the WHERE part, only with the filters that were given
+            var where = new List<string>();
+            var ps = new List<(string Name, object? Value)>();
+
+            if (!string.IsNullOrWhiteSpace(q.Search))
+            {
+                where.Add("(Username LIKE @s OR Name LIKE @s OR Email LIKE @s)");
+                ps.Add(("@s", "%" + q.Search + "%"));
+            }
+            if (!string.IsNullOrWhiteSpace(q.Role))
+            {
+                where.Add("Role = @r");
+                ps.Add(("@r", q.Role));
+            }
+            string whereSql = where.Count > 0 ? "WHERE " + string.Join(" AND ", where) : "";
+
+            int total;
+            using (var cnt = Cmd(conn, $"SELECT COUNT(*) FROM Users {whereSql}", ps.ToArray()))
+                total = Convert.ToInt32(cnt.ExecuteScalar());
+
+            ps.Add(("@size", q.PageSize));
+            ps.Add(("@off", (q.Page - 1) * q.PageSize));
+
+            var items = new List<UserDto>();
+            using (var cmd = Cmd(conn, $"SELECT {UserColumns} FROM Users {whereSql} ORDER BY UserId LIMIT @size OFFSET @off", ps.ToArray()))
+            using (var rd = cmd.ExecuteReader())
+            {
+                while (rd.Read())
+                    items.Add(ReadUser(rd));
+            }
+
+            return Task.FromResult(new PagedResult<UserDto>
+            {
+                Items = items,
+                Page = q.Page,
+                PageSize = q.PageSize,
+                TotalCount = total,
+                TotalPages = (int)Math.Ceiling(total / (double)q.PageSize)
+            });
+        }
+
+        // function to set a new password for a user
+        public Task ResetPasswordAsync(int userId, ResetPasswordRequest r)
+        {
+            using var conn = Open();
+            using var cmd = Cmd(conn, "UPDATE Users SET PasswordHash = @h WHERE UserId = @id",
+                ("@h", PasswordHasher.Hash(r.NewPassword)), ("@id", userId));
+
+            if (cmd.ExecuteNonQuery() == 0)
+                throw new NotFoundException($"User {userId} not found.");
+
+            return Task.CompletedTask;
+        }
+
         // function to check a username + password, returns null if they are wrong
         public Task<UserDto?> LoginAsync(LoginRequest r)
         {
