@@ -23,6 +23,12 @@ namespace BankMvc.Services
 
         // Checks if the service and database is up
         public const string Health = "api/health";
+
+        // create a user (Part A: CreateUserAsync)
+        public const string Users = "api/users";
+
+        // check a username + password, gives back the user with their role (Part A: LoginAsync)
+        public const string Login = "api/users/login";
     }
 
     // object to hold the result of every call to the service (success or error)
@@ -92,6 +98,17 @@ namespace BankMvc.Services
 
             return Send<TransactionDto>(req);
         }
+
+        // ---------- sign in / register ----------
+
+        // check the username + password, wrong details come back as Ok = false with the service's message
+        public Task<ApiResult<UserDto>> LoginAsync(string username, string password) =>
+            Send<UserDto>(new RestRequest(Routes.Login, Method.Post).AddJsonBody(new { username, password }));
+
+        // create a new customer, the role is always Customer so nobody can register themselves as an admin
+        public Task<ApiResult<UserDto>> RegisterAsync(RegisterViewModel m) =>
+            Send<UserDto>(new RestRequest(Routes.Users, Method.Post)
+                .AddJsonBody(new { m.Username, m.Name, m.Email, m.Password, m.Address, m.Phone, role = "Customer" }));
 
         // ---------- audit trail ----------
 

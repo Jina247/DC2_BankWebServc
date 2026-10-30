@@ -1,9 +1,22 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o => o.JsonSerializerOptions.IncludeFields = true);
 
 builder.Services.AddSingleton<BankMvc.Services.BankApiClient>();
+
+// login cookie: holds the user id, username and role after signing in
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(o =>
+    {
+        o.LoginPath = "/Auth/Login";               // not signed in -> sign in page (then back to the page they wanted)
+        o.AccessDeniedPath = "/Home/Status/403";   // signed in but wrong role -> access denied page
+        o.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        o.SlidingExpiration = true;                // the 30 minutes restart while the user is active
+        o.Cookie.HttpOnly = true;                  // javascript can't read the cookie
+    });
 
 var app = builder.Build();
 
@@ -16,7 +29,7 @@ app.UseStatusCodePagesWithReExecute("/Home/Status/{0}");
 
 app.UseStaticFiles();
 app.UseRouting();
-// Task Group 1: app.UseAuthentication(); goes here, before UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
